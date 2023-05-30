@@ -12,8 +12,9 @@ from git import Repo
 from pathlib import Path
 from git.exc import InvalidGitRepositoryError
 
+
 class Curator:
-    def __init__(self, repo_path: str = '.'):
+    def __init__(self, repo_path: str = "."):
         try:
             self.repo = Repo(repo_path, search_parent_directories=True)
             self.root_path = Path(self.repo.git.rev_parse("--show-toplevel"))
@@ -21,23 +22,25 @@ class Curator:
             print(f"No git repository found at {Path(repo_path).resolve()}!")
             raise
 
-    def list_branches(self) -> None:
-        print("Current branches:")
+    def branches(self) -> dict:
+        branches = {}
         for branch in self.repo.branches:
             if branch == self.repo.active_branch:
-                print(f"* {branch} (active)")
+                branches[branch] = True
             else:
-                print(f"* {branch}")
+                branches[branch] = False
+
+        return branches
 
     def discover(self) -> tuple[Path, Path]:
-        source_path = self.root_path / 'src'
+        source_path = self.root_path / "src"
         if not source_path.exists():
             print(f"No source directory found at {source_path}!")
             return None, None
 
         first_child = next(source_path.iterdir())
 
-        if not (first_child / '__init__.py').exists():
+        if not (first_child / "__init__.py").exists():
             # This is a namespace, check the first child
             namespace = first_child
             module = next(namespace.iterdir())
@@ -46,65 +49,70 @@ class Curator:
             namespace = None
             module = first_child
 
-        if not (module / '__init__.py').exists():
+        if not (module / "__init__.py").exists():
             print(f"No __init__.py file found in module at {module}!")
             return None, None
 
         return namespace, module
 
     def get_version(self, module: Path) -> str:
-        init_file = module / '__init__.py'
+        init_file = module / "__init__.py"
         lines = init_file.read_text().splitlines()
         for line in lines:
-            if line.startswith('__version__'):
-                return line.split('=')[1].strip().strip("'")
+            if line.startswith("__version__"):
+                return line.split("=")[1].strip().strip("'")
         return None
 
     def set_version(self, module: Path, version: str) -> None:
-        init_file = module / '__init__.py'
+        init_file = module / "__init__.py"
         lines = init_file.read_text().splitlines()
         for i, line in enumerate(lines):
-            if line.startswith('__version__'):
+            if line.startswith("__version__"):
                 lines[i] = f"__version__ = '{version}'"
-        init_file.write_text('\n'.join(lines) + '\n')
+        init_file.write_text("\n".join(lines) + "\n")
 
     def update_changelog(self, version: str) -> None:
-        changelog_file = self.root_path / 'CHANGELOG.md'
+        changelog_file = self.root_path / "CHANGELOG.md"
         if not changelog_file.exists():
             print(f"No CHANGELOG.md file found at {changelog_file}!")
             return
-        changelog_file.write_text(changelog_file.read_text() + f"\n## {version}\n\n- Placeholder for changes\n")
+        changelog_file.write_text(
+            changelog_file.read_text()
+            + f"\n## {version}\n\n- Placeholder for changes\n"
+        )
 
     def merge_to_main(self, branch_name: str, commit_message: str) -> None:
-        main_branch = self.repo.heads['main']
+        main_branch = self.repo.heads["main"]
         dev_branch = self.repo.heads[branch_name]
-        self.repo.git.checkout('main')
+        self.repo.git.checkout("main")
         self.repo.git.merge(dev_branch, m=commit_message)
         print(f"Merged {branch_name} to main")
 
-    def create_release_branch(self, release_version: str, release_branch_name: str) -> None:
-        # List current branches and mark the active branch
-        self.list_branches()
-
-        # Discover the namespace and module
+    def current_version(self):
         namespace, module = self.discover()
         if module is None:
             return
 
-        # Get the current version
-        current_version = self.get_version(module)
-        print(f"Current version: {current_version}")
+        return self.get_version(module)
 
-        # Open the __init__.py file and update the version
+    def create_release_branch(
+        self, release_version: str, release_branch_name: str
+    ) -> None:
+        namespace, module = self.discover()
+        if module is None:
+            return
+
+        current_version = self.get_version(module)
+
         self.set_version(module, release_version)
 
         # Append a placeholder to the CHANGELOG.md
         self.update_changelog(release_version)
 
         # Commit the changes
-        self.repo.git.add(str(module / '__init__.py'), str(self.root_path / 'CHANGELOG.md'))
-        self.repo.git.commit('-m', f"Start release {release_version}")
+        self.repo.git.add(
+            str(module / "__init__.py"), str(self.root_path / "CHANGELOG.md")
+        )
+        self.repo.git.commit("-m", f"Start release {release_version}")
 
-        print(f"Release branch {release_branch_name} created and initialized for release {release_version}")
-
-
+        return f"Release branch {release_branch_name} created and initialized for release {release_version}"

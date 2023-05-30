@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.scripts]
-curator = "photon_platform.curator.__main__:main"
+curator = "photon_platform.curator.app:run"
 
 [build-system]
 requires = ["setuptools", "setuptools-scm"]
@@ -27,7 +27,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = [""]
+include = ["photon_platform"]
 namespaces = true
 
 [tool.setuptools.dynamic]

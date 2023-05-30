@@ -1,0 +1,30 @@
+
+/* The top level dialog (a Container) */
+#dialog {
+    margin: 1 2;
+    background: $panel;
+    color: $text;
+    border: tall $background;
+    padding: 1 2;
+}
+
+#details {
+    height: auto;
+    margin: 1 0;
+    padding: 1 2;
+    layout: grid;
+    grid-size: 2;
+    /* grid-rows: 4; */
+    grid-columns: 1fr 1fr;
+    background: $boost;
+    border: wide $background; 
+}
+
+
+#details Label {
+    padding: 1 2;
+    text-align: right;
+}
+
+
+
