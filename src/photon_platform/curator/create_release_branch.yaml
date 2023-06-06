@@ -1,0 +1,11 @@
+form:
+  title: Create Release Branch
+  id: create-release-branch
+  fields:
+    project-name:
+      label: Project Name
+      placeholder: Enter Name
+      type: Input
+      validate:
+        required: true
+        max_length: 8

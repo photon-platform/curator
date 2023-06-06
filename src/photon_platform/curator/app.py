@@ -15,6 +15,7 @@ from pathlib import Path
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from .curator import Curator
+from photon_platform.formulator import load_blueprint, FormulatorModal
 
 
 class CuratorApp(App):
@@ -52,7 +53,10 @@ class CuratorApp(App):
 
     def action_create_release_branch(self):
 
-        self.curator.create_release_branch()
+        blueprint = load_blueprint("create_release_branch.yaml")
+        context = self.push_screen(FormulatorModal(validation_errors))
+        self.curator.create_release_branch(**context)
+
 
         self.query_one("#branches").value = str(self.curator.repo.branches)
         self.query_one("#active_branch").value = str(self.curator.repo.active_branch)
