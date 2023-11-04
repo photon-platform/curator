@@ -11,16 +11,40 @@ Curator
 from git import Repo
 from pathlib import Path
 from git.exc import InvalidGitRepositoryError
+from github import Github
+import toml
+import os
+from rich import print, inspect
 
 
 class Curator:
     def __init__(self, repo_path: str = "."):
         try:
             self.repo = Repo(repo_path, search_parent_directories=True)
+            inspect(self.repo)
             self.root_path = Path(self.repo.git.rev_parse("--show-toplevel"))
         except InvalidGitRepositoryError:
             print(f"No git repository found at {Path(repo_path).resolve()}!")
             raise
+        self.pyproject_toml = self.load_pyproject_toml()
+        self.github_client = Github(os.getenv("GITHUB_TOKEN"))
+        self.github_repo = self.get_github_repo()
+        #  TODO change log
+
+
+    def get_github_repo(self):
+        #  repo = self.github_client.get_repo(f"geometor/{self.repo.name}")
+        #  return repo
+        pass
+
+    def load_pyproject_toml(self):
+        pyproject_path = self.root_path / "pyproject.toml"
+        if pyproject_path.exists():
+            with open(pyproject_path, "r", encoding="utf-8") as file:
+                return toml.load(file)
+        else:
+            print(f"No pyproject.toml file found at {pyproject_path}!")
+            return None
 
     def branches(self) -> dict:
         branches = {}

@@ -43,12 +43,14 @@ class CuratorApp(App):
             Label("DESC:"),
             Static(self.curator.repo.description, id="desc"),
             Label("BRANCHES:"),
-            Static(str(self.curator.repo.branches), id="branches"),
+            Static(str(self.curator.branches()), id="branches"),
             Label("ACTIVE:"),
             Static(str(self.curator.repo.active_branch), id="active_branch"),
             Label("TAGS:"),
             Static(str(self.curator.repo.tags), id="tags"),
-            id="details",
+            Label("VERSION:"),
+            Static(str(self.curator.current_version()), id="version"),
+            #  id="details",
         )
 
     def action_create_release_branch(self):
