@@ -1,0 +1,8 @@
+Create list view
+================
+
+.. post::  22.351-084538
+   :tags: active
+   :category: TODO
+
+Textual screen for viewing and filtering the log list

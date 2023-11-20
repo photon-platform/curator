@@ -1,12 +1,12 @@
 from ablog.conf import *
-import photon_platform.curator as module
+import photon_platform.logger as module
 version = module.__version__
 
 org = 'photon-platform'
 org_name = 'PHOTON platform'
 
-repo = 'curator'
-repo_name = 'curator'
+repo = 'photon-logger'
+repo_name = 'logger'
 
 setup_globals(org, org_name, repo, repo_name)
 

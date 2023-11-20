@@ -1,0 +1,19 @@
+.
+├── app.css
+├── _app.py
+├── app.py
+├── create_release_branch.yaml
+├── curator.py
+├── gather.py
+├── get_stat.py
+├── __init__.py
+├── __main__.py
+├── modal.py
+├── __pycache__
+│   ├── app.cpython-310.pyc
+│   ├── curator.cpython-310.pyc
+│   ├── gather.cpython-310.pyc
+│   └── __init__.cpython-310.pyc
+└── tree.txt
+
+1 directory, 15 files

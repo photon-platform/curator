@@ -1,0 +1,8 @@
+Complete README
+===============
+
+.. post::  22.347-162222
+   :tags: urgent, active
+   :category: TODO
+
+Add log rst file and desc of ablog and theme

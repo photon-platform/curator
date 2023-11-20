@@ -1,0 +1,20 @@
+ABlog
+=====
+
+.. post::  22.350-074023
+   :tags: python, sphinx
+   :category: DEPENDENCIES
+
+Blog overlay for Sphinx
+
+
+ABlog_ is a Sphinx extension that converts any documentation or personal website project into a full-fledged blog
+
+I have forked this project to photon-ablog_ 
+
+While the logger is not a current dependency, the ``post`` directive used in the log files is defined by ABlog.
+
+
+
+.. _ABlog: https://github.com/sunpy/ablog
+.. _photon-ablog: https://github.com/photon-platform/photon-ablog
