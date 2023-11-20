@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
-  <id>https://.github.io/</id>
-  <title> • </title>
-  <updated>2023-11-04T03:31:12.996775+00:00</updated>
-  <link href="https://.github.io/"/>
-  <link href="https://.github.io/log/atom.xml" rel="self"/>
+  <id>https://photon-platform.github.io/curator</id>
+  <title>PHOTON platform • curator</title>
+  <updated>2023-11-20T01:21:04.436028+00:00</updated>
+  <link href="https://photon-platform.github.io/curator"/>
+  <link href="https://photon-platform.github.io/curator/log/atom.xml" rel="self"/>
   <generator uri="https://ablog.readthedocs.org/" version="unknown.dev">ABlog</generator>
 </feed>
