@@ -1,5 +1,5 @@
 curator
-============
+=======
 
 .. include:: intro.rst
 
