@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
   <id>https://photon-platform.github.io/curator</id>
-  <title>PHOTON platform • curator</title>
-  <updated>2023-11-20T01:21:04.436028+00:00</updated>
+  <title>photon-platform • curator</title>
+  <updated>2024-05-06T01:58:09.749169+00:00</updated>
   <link href="https://photon-platform.github.io/curator"/>
   <link href="https://photon-platform.github.io/curator/log/atom.xml" rel="self"/>
   <generator uri="https://ablog.readthedocs.org/" version="unknown.dev">ABlog</generator>
