@@ -149,7 +149,8 @@ def extract_div_convert_to_markdown(html_file_path, output_markdown_file):
     print(f"Markdown file created at {output_markdown_file}")
 
 
-if __name__ == "__main__":
+
+def main():
     # Change to Git root directory
     git_root = get_git_root()
     os.chdir(git_root)
@@ -173,3 +174,6 @@ if __name__ == "__main__":
         os.path.join(clerk_doc_directory, "index.html"),
         os.path.join(clerk_doc_directory, "docs.md"),
     )
+
+if __name__ == "__main__":
+    main()
