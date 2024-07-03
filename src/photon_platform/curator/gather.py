@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import markdownify
 import subprocess
 import shutil
-
+import toml
 
 def get_git_root(path="."):
     """
@@ -18,6 +18,16 @@ def get_git_root(path="."):
     ).stdout.strip()
     return git_root
 
+def get_project_name(git_root):
+    """
+    Get the project name from pyproject.toml file.
+    """
+    pyproject_path = os.path.join(git_root, "pyproject.toml")
+    if os.path.exists(pyproject_path):
+        with open(pyproject_path, "r") as file:
+            pyproject_data = toml.load(file)
+            return pyproject_data.get("project", {}).get("name")
+    return None
 
 def create_clerk_directory(directory):
     """
@@ -26,7 +36,6 @@ def create_clerk_directory(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-
 def ensure_parent_path_exists(file_path):
     """
     Ensure that the parent path of the given file exists. If not, create it.
@@ -34,7 +43,6 @@ def ensure_parent_path_exists(file_path):
     parent_directory = os.path.dirname(file_path)
     if not os.path.exists(parent_directory):
         os.makedirs(parent_directory, exist_ok=True)
-
 
 def gen_tree(path, dest):
     """
@@ -47,7 +55,6 @@ def gen_tree(path, dest):
     with open(dest, "w") as file:
         file.write(result.stdout)
 
-
 def run_sphinx_build(src, dest):
     """
     Run sphinx-build to generate singlehtml documentation.
@@ -57,7 +64,6 @@ def run_sphinx_build(src, dest):
         check=True,
     )
 
-
 def remove_header_links(html_content) -> str:
     """
     Removes all <a> tags with class 'headerlink' from the HTML content.
@@ -65,15 +71,10 @@ def remove_header_links(html_content) -> str:
     returns:
     str: Modified HTML content with header links removed.
     """
-
     soup = BeautifulSoup(html_content, "html.parser")
-
-    # Find and remove all <a> tags with class 'headerlink'
     for header_link in soup.find_all("a", class_="headerlink"):
         header_link.decompose()
-
     return str(soup)
-
 
 def clean_directory_except_index_html(directory):
     """
@@ -84,39 +85,26 @@ def clean_directory_except_index_html(directory):
         if os.path.isfile(file_path) and filename != "index.html":
             os.remove(file_path)
 
-
 def gather_source_code(src_directory, output_file):
     """
     Gathers all the source code from the src directory into a single markdown file.
     """
-    # List to store file paths
     files = []
-
-    # Walk through the directory and add file paths to the list
     for root, dirs, filenames in os.walk(src_directory):
         for filename in filenames:
             if filename.endswith(".py"):
                 files.append(os.path.join(root, filename))
-
-    # Sort the files to ensure __init__.py is at the beginning
     files.sort(key=lambda x: (not x.endswith("__init__.py"), x))
-
-    # Open the output file
+    
     with open(output_file, "w") as md_file:
         for file_path in files:
-            # Write the file path as a header in the markdown file
             md_file.write(f"## {file_path}\n\n```py\n")
-
-            # Open and read the content of the file
             with open(file_path, "r") as f:
                 content = f.read()
-
-            # Write the content to the markdown file
             md_file.write(content)
             md_file.write("\n```\n\n")
-
+    
     print(f"Source code gathered into {output_file}")
-
 
 def extract_div_convert_to_markdown(html_file_path, output_markdown_file):
     """
@@ -126,41 +114,38 @@ def extract_div_convert_to_markdown(html_file_path, output_markdown_file):
     html_file_path (str): Path to the HTML file.
     output_markdown_file (str): Path for the output Markdown file.
     """
-    # Read the HTML file
     with open(html_file_path, "r", encoding="utf-8") as file:
         html_content = file.read()
 
-    # Parse the HTML content using BeautifulSoup
-    #  soup = BeautifulSoup(html_content, "html.parser")
-
     cleaned_html_content = remove_header_links(html_content)
     soup = BeautifulSoup(cleaned_html_content, "html.parser")
-
-    # Find the div with class 'document'
     document_div = soup.find("div", class_="document")
-
-    # Convert the HTML of the document div to Markdown
     markdown_content = markdownify.markdownify(str(document_div), heading_style="ATX")
 
-    # Write the Markdown content to the output file
     with open(output_markdown_file, "w", encoding="utf-8") as md_file:
         md_file.write(markdown_content)
 
     print(f"Markdown file created at {output_markdown_file}")
 
-
-
 def main():
     # Change to Git root directory
     git_root = get_git_root()
     os.chdir(git_root)
-    gen_tree(git_root, os.path.join(git_root, ".clerk/tree.txt"))
-
+    
+    # Get project name from pyproject.toml
+    project_name = get_project_name(git_root)
+    if project_name is None:
+        print("Warning: Project name not found in pyproject.toml. Using directory name as fallback.")
+        project_name = os.path.basename(git_root)
+    
     # Create .clerk and .clerk/doc directories
     clerk_directory = os.path.join(git_root, ".clerk")
     clerk_doc_directory = os.path.join(clerk_directory, "docs")
     create_clerk_directory(clerk_directory)
     create_clerk_directory(clerk_doc_directory)
+
+    # Generate tree with project name prefix
+    gen_tree(git_root, os.path.join(clerk_directory, f"{project_name}_tree.txt"))
 
     # Run sphinx-build
     run_sphinx_build("docsrc", clerk_doc_directory)
@@ -168,12 +153,15 @@ def main():
     # Clean up .clerk/doc directory
     clean_directory_except_index_html(clerk_doc_directory)
 
-    # Gather source code and convert documentation to Markdown
-    gather_source_code("src", os.path.join(clerk_directory, "src.md"))
+    # Gather source code and convert documentation to Markdown with project name prefix
+    gather_source_code("src", os.path.join(clerk_directory, f"{project_name}_src.md"))
     extract_div_convert_to_markdown(
         os.path.join(clerk_doc_directory, "index.html"),
-        os.path.join(clerk_doc_directory, "docs.md"),
+        os.path.join(clerk_directory, f"{project_name}_docs.md")
     )
+
+    # Clean up temporary .clerk/docs directory
+    shutil.rmtree(clerk_doc_directory)
 
 if __name__ == "__main__":
     main()
