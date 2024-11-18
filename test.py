@@ -1,17 +1,12 @@
-#  import requests
 import arxiv
-from arxiv import Search
-from arxiv import Client 
-from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
-
-print(dir(arxiv))
+from slugify import slugify
 
 def get_arxiv_data(url):
     """Extract arXiv ID from URL and fetch metadata."""
     paper_id = urlparse(url).path.split('/')[-1]
-    search = Search(id_list=[paper_id])
+    search = arxiv.Search(id_list=[paper_id])
     paper = next(search.results())
     
     return {
@@ -20,7 +15,9 @@ def get_arxiv_data(url):
         'abstract': paper.summary,
         'published': paper.published,
         'url': url,
-        'categories': paper.categories
+        'categories': paper.categories,
+        'paper_id': paper_id,
+        'paper': paper
     }
 
 def format_rst(data):
@@ -33,6 +30,7 @@ def format_rst(data):
 :Published: {data['published'].strftime('%Y-%m-%d')}
 :URL: {data['url']}
 :Categories: {', '.join(data['categories'])}
+:PDF: {data['paper_id']}.pdf
 
 Abstract
 --------
@@ -52,19 +50,19 @@ def save_reference(url, output_dir='references'):
     """Fetch paper data and save as RST file."""
     data = get_arxiv_data(url)
     rst_content = format_rst(data)
+
+    paper_dir = Path(output_dir) / slugify(data['title'])
+    paper_dir.mkdir(parents=True, exist_ok=True)
     
-    # Create output directory if needed
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    index_path = paper_dir / 'index.rst'
+    index_path.write_text(rst_content)
     
-    # Generate filename from title
-    filename = data['title'].lower()
-    filename = ''.join(c if c.isalnum() else '_' for c in filename)
-    filename = filename[:50] + '.rst'  # Limit length
+    pdf_path = paper_dir / f"{data['paper_id']}.pdf"
+    print(pdf_path)
+    print()
+    data['paper'].download_pdf(str(paper_dir))
     
-    filepath = Path(output_dir) / filename
-    filepath.write_text(rst_content)
-    
-    return filepath
+    return index_path, pdf_path
 
 if __name__ == '__main__':
     import sys
@@ -79,8 +77,9 @@ if __name__ == '__main__':
         sys.exit(1)
         
     try:
-        filepath = save_reference(url)
-        print(f"Reference saved to: {filepath}")
+        rst_path, pdf_path = save_reference(url)
+        print(f"Reference saved to: {rst_path}")
+        print(f"PDF saved to: {pdf_path}")
     except Exception as e:
         print(f"Error processing URL: {e}")
         sys.exit(1)
