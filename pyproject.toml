@@ -23,6 +23,7 @@ dependencies = [
 
 [project.scripts]
 curator = "photon_platform.curator.app:run"
+gather = "photon_platform.curator.gather:main"
 
 [build-system]
 requires = ["setuptools", "setuptools-scm"]

@@ -85,26 +85,60 @@ def clean_directory_except_index_html(directory):
         if os.path.isfile(file_path) and filename != "index.html":
             os.remove(file_path)
 
+
 def gather_source_code(src_directory, output_file):
     """
     Gathers all the source code from the src directory into a single markdown file.
     """
-    files = []
-    for root, dirs, filenames in os.walk(src_directory):
-        for filename in filenames:
-            if filename.endswith(".py"):
-                files.append(os.path.join(root, filename))
-    files.sort(key=lambda x: (not x.endswith("__init__.py"), x))
-    
+    def file_sort_key(filename):
+        if filename == "__init__.py":
+            return (0, filename)
+        elif filename.startswith("__") and filename.endswith(".py"):
+            return (1, filename)
+        else:
+            return (2, filename)
+
     with open(output_file, "w") as md_file:
-        for file_path in files:
-            md_file.write(f"## {file_path}\n\n```py\n")
-            with open(file_path, "r") as f:
-                content = f.read()
-            md_file.write(content)
-            md_file.write("\n```\n\n")
-    
+        for root, dirs, filenames in os.walk(src_directory):
+            dirs.sort()  # Ensure directories are processed in order
+            py_files = [f for f in filenames if f.endswith(".py") or f.endswith(".j2") or f.endswith(".css")]
+            py_files.sort(key=file_sort_key)
+            for filename in py_files:
+                if filename.endswith(".py"):
+                    file_type = "py"
+                if filename.endswith(".j2"):
+                    file_type = "jinja"
+                if filename.endswith(".css"):
+                    file_type = "css"
+                file_path = os.path.join(root, filename)
+                md_file.write(f"## {file_path}\n\n```{file_type}\n")
+                with open(file_path, "r") as f:
+                    content = f.read()
+                md_file.write(content)
+                md_file.write("\n```\n\n")
+
     print(f"Source code gathered into {output_file}")
+
+#  def gather_source_code(src_directory, output_file):
+    #  """
+    #  Gathers all the source code from the src directory into a single markdown file.
+    #  """
+    #  files = []
+    #  for root, dirs, filenames in os.walk(src_directory):
+        #  for filename in filenames:
+            #  if filename.endswith(".py"):
+                #  files.append(os.path.join(root, filename))
+    #  files.sort(key=lambda x: (not x.endswith("__init__.py"), x))
+    
+    #  with open(output_file, "w") as md_file:
+        #  for file_path in files:
+            #  md_file.write(f"## {file_path}\n\n```py\n")
+            #  with open(file_path, "r") as f:
+                #  content = f.read()
+            #  md_file.write(content)
+            #  md_file.write("\n```\n\n")
+    
+    #  print(f"Source code gathered into {output_file}")
 
 def extract_div_convert_to_markdown(html_file_path, output_markdown_file):
     """
