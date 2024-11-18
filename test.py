@@ -6,6 +6,23 @@ from slugify import slugify
 
 client = arxiv.Client()
 
+#  'authors',
+#  'categories',
+#  'comment',
+#  'doi',
+#  'download_pdf',
+#  'download_source',
+#  'entry_id',
+#  'get_short_id',
+#  'journal_ref',
+#  'links',
+#  'pdf_url',
+#  'primary_category',
+#  'published',
+#  'summary',
+#  'title',
+#  'updated'
+
 def get_arxiv_data(url):
     """Extract arXiv ID from URL and fetch metadata."""
     paper_id = urlparse(url).path.split('/')[-1]
