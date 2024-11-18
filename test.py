@@ -1,13 +1,21 @@
+from rich import print
 import arxiv
 from pathlib import Path
 from urllib.parse import urlparse
 from slugify import slugify
 
+client = arxiv.Client()
+
 def get_arxiv_data(url):
     """Extract arXiv ID from URL and fetch metadata."""
     paper_id = urlparse(url).path.split('/')[-1]
     search = arxiv.Search(id_list=[paper_id])
-    paper = next(search.results())
+    print(dir(search))
+    results = client.results(search)
+    print(dir(results))
+    paper = next(results)
+    print(dir(paper))
+    print(paper)
     
     return {
         'title': paper.title,
