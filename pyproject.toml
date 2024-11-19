@@ -19,11 +19,13 @@ dependencies = [
     "textual",
     "rich",
     "jinja2",
+    "arxiv",
 ]
 
 [project.scripts]
 curator = "photon_platform.curator.app:run"
 gather = "photon_platform.curator.gather:main"
+arxivit = "photon_platform.curator.arxivit:main"
 
 [build-system]
 requires = ["setuptools", "setuptools-scm"]

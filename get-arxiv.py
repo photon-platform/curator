@@ -1,23 +1,38 @@
+from rich import print
 import arxiv
 from pathlib import Path
 from urllib.parse import urlparse
 from slugify import slugify
 
+client = arxiv.Client()
 
+#  'authors',
+#  'categories',
+#  'comment',
+#  'doi',
+#  'download_pdf',
+#  'download_source',
+#  'entry_id',
+#  'get_short_id',
+#  'journal_ref',
+#  'links',
+#  'pdf_url',
+#  'primary_category',
+#  'published',
+#  'summary',
+#  'title',
+#  'updated'
 
 def get_arxiv_data(url):
     """Extract arXiv ID from URL and fetch metadata."""
-    # Construct the default API client.
-    client = arxiv.Client()
-
     paper_id = urlparse(url).path.split('/')[-1]
     search = arxiv.Search(id_list=[paper_id])
+    print(dir(search))
     results = client.results(search)
-    print('results:', results)
+    print(dir(results))
     paper = next(results)
-
-    print('dir:', dir(paper))
-    print('paper:', paper)
+    print(dir(paper))
+    print(paper)
     
     return {
         'title': paper.title,
@@ -60,7 +75,7 @@ def save_reference(url, output_dir='references'):
     """Fetch paper data and save as RST file."""
     data = get_arxiv_data(url)
     rst_content = format_rst(data)
-    
+
     paper_dir = Path(output_dir) / slugify(data['title'])
     paper_dir.mkdir(parents=True, exist_ok=True)
     
@@ -68,7 +83,9 @@ def save_reference(url, output_dir='references'):
     index_path.write_text(rst_content)
     
     pdf_path = paper_dir / f"{data['paper_id']}.pdf"
-    data['paper'].download_pdf(str(pdf_path))
+    print(pdf_path)
+    print()
+    data['paper'].download_pdf(str(paper_dir))
     
     return index_path, pdf_path
 
