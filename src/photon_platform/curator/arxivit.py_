@@ -6,10 +6,12 @@ import arxiv
 from pathlib import Path
 from slugify import slugify
 
+client = arxiv.Client()
+
 def get_paper_data(paper_id: str) -> dict:
     """Fetch paper metadata from arXiv."""
     search = arxiv.Search(id_list=[paper_id])
-    paper = next(search.results())
+    paper = next(client.results(search))
     
     return {
         'title': paper.title,
@@ -25,67 +27,37 @@ def get_paper_data(paper_id: str) -> dict:
         'paper': paper
     }
 
-def create_include_files(paper_dir: Path):
-    """Create include files: premise, outline, quotes, and notes."""
-    includes = {
-        'premise.rst': """\
-premise
-~~~~~~~
-
-""",
-        'outline.rst': """\
-outline
-~~~~~~~
-
-""",
-        'quotes.rst': """\
-quotes
-~~~~~~
-
-""",
-        'notes.rst': """\
-notes
-~~~~~
-
-""",
-    }
-    
-    for filename, content in includes.items():
-        include_path = paper_dir / filename
-        include_path.write_text(content)
-        print(f"Created include file: {include_path}")
-
 def format_rst(data: dict) -> str:
     """Format paper data as RST document."""
-    rst = f""".. _{slugify(data['title'])}:
+    # Create slug from title
+    slug = slugify(data['title'])
+    
+    rst = f""".. _{slug}:
 
 {data['title']}
 {'=' * len(data['title'])}
 
-:id: {data['paper_id']}
 :Authors: {', '.join(data['authors'])}
 :Published: {data['published'].strftime('%Y-%m-%d')}
 :arXiv: https://arxiv.org/abs/{data['paper_id']}
-:PDF: https://arxiv.org/pdf/{data['paper_id']}
+:PDF: {data['paper_id']}.pdf
 :DOI: {data['doi'] or 'N/A'}
 :Journal Reference: {data['journal_ref'] or 'N/A'}
 :Primary Category: {data['primary_category']}
 :Categories: {', '.join(data['categories'])}
 :Comment: {data['comment'] or 'N/A'}
 
-:github_url: _
-
-abstract
+Abstract
 --------
 {data['abstract']}
 
-.. include:: premise.rst
+Keywords
+--------
+.. todo:: Extract or manually add keywords
 
-.. include:: outline.rst
-
-.. include:: quotes.rst
-
-.. include:: notes.rst
+Notes
+-----
+.. todo:: Add reading notes and key insights
 """
     return rst.strip()
 
@@ -100,9 +72,6 @@ def save_reference(paper_id: str, output_dir: str = '.') -> tuple[Path, Path]:
 
     paper_dir = output_path / slugify(data['title'])
     paper_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Create include files
-    create_include_files(paper_dir)
     
     # Save index.rst
     index_path = paper_dir / 'index.rst'
