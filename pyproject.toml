@@ -25,7 +25,9 @@ dependencies = [
 [project.scripts]
 curator = "photon_platform.curator.app:run"
 gather = "photon_platform.curator.gather:main"
-arxivit = "photon_platform.curator.arxivit:main"
+grax = "photon_platform.curator.arxivit:main"
+ggh = "photon_platform.curator.repo_rst:main"
+gyt = "photon_platform.curator.get_youtube:main"
 
 [build-system]
 requires = ["setuptools", "setuptools-scm"]
