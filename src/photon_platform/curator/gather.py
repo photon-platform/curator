@@ -5,6 +5,7 @@ import subprocess
 import shutil
 import toml
 
+
 def get_git_root(path="."):
     """
     Find the root directory of the git repository.
@@ -18,6 +19,7 @@ def get_git_root(path="."):
     ).stdout.strip()
     return git_root
 
+
 def get_project_name(git_root):
     """
     Get the project name from pyproject.toml file.
@@ -29,12 +31,14 @@ def get_project_name(git_root):
             return pyproject_data.get("project", {}).get("name")
     return None
 
+
 def create_clerk_directory(directory):
     """
     Create the .clerk directory if it doesn't exist.
     """
     if not os.path.exists(directory):
         os.makedirs(directory)
+
 
 def ensure_parent_path_exists(file_path):
     """
@@ -43,6 +47,7 @@ def ensure_parent_path_exists(file_path):
     parent_directory = os.path.dirname(file_path)
     if not os.path.exists(parent_directory):
         os.makedirs(parent_directory, exist_ok=True)
+
 
 def gen_tree(path, dest):
     """
@@ -55,6 +60,7 @@ def gen_tree(path, dest):
     with open(dest, "w") as file:
         file.write(result.stdout)
 
+
 def run_sphinx_build(src, dest):
     """
     Run sphinx-build to generate singlehtml documentation.
@@ -63,6 +69,7 @@ def run_sphinx_build(src, dest):
         ["sphinx-build", "-b", "singlehtml", "-D", "html_permalinks=''", src, dest],
         check=True,
     )
+
 
 def remove_header_links(html_content) -> str:
     """
@@ -75,6 +82,7 @@ def remove_header_links(html_content) -> str:
     for header_link in soup.find_all("a", class_="headerlink"):
         header_link.decompose()
     return str(soup)
+
 
 def clean_directory_except_index_html(directory):
     """
@@ -90,6 +98,7 @@ def gather_source_code(src_directory, output_file):
     """
     Gathers all the source code from the src directory into a single markdown file.
     """
+
     def file_sort_key(filename):
         if filename == "__init__.py":
             return (0, filename)
@@ -101,13 +110,19 @@ def gather_source_code(src_directory, output_file):
     with open(output_file, "w") as md_file:
         for root, dirs, filenames in os.walk(src_directory):
             dirs.sort()  # Ensure directories are processed in order
-            py_files = [f for f in filenames if f.endswith(".py") or f.endswith(".j2") or f.endswith(".css")]
+            py_files = [
+                f
+                for f in filenames
+                if f.endswith(".py") or f.endswith(".j2") or f.endswith(".css")
+            ]
             py_files.sort(key=file_sort_key)
             for filename in py_files:
                 if filename.endswith(".py"):
                     file_type = "py"
                 if filename.endswith(".j2"):
                     file_type = "jinja"
+                if filename.endswith(".md"):
+                    file_type = "markdown"
                 if filename.endswith(".css"):
                     file_type = "css"
                 file_path = os.path.join(root, filename)
@@ -119,26 +134,6 @@ def gather_source_code(src_directory, output_file):
 
     print(f"Source code gathered into {output_file}")
 
-#  def gather_source_code(src_directory, output_file):
-    #  """
-    #  Gathers all the source code from the src directory into a single markdown file.
-    #  """
-    #  files = []
-    #  for root, dirs, filenames in os.walk(src_directory):
-        #  for filename in filenames:
-            #  if filename.endswith(".py"):
-                #  files.append(os.path.join(root, filename))
-    #  files.sort(key=lambda x: (not x.endswith("__init__.py"), x))
-    
-    #  with open(output_file, "w") as md_file:
-        #  for file_path in files:
-            #  md_file.write(f"## {file_path}\n\n```py\n")
-            #  with open(file_path, "r") as f:
-                #  content = f.read()
-            #  md_file.write(content)
-            #  md_file.write("\n```\n\n")
-    
-    #  print(f"Source code gathered into {output_file}")
 
 def extract_div_convert_to_markdown(html_file_path, output_markdown_file):
     """
@@ -161,17 +156,20 @@ def extract_div_convert_to_markdown(html_file_path, output_markdown_file):
 
     print(f"Markdown file created at {output_markdown_file}")
 
+
 def main():
     # Change to Git root directory
     git_root = get_git_root()
     os.chdir(git_root)
-    
+
     # Get project name from pyproject.toml
     project_name = get_project_name(git_root)
     if project_name is None:
-        print("Warning: Project name not found in pyproject.toml. Using directory name as fallback.")
+        print(
+            "Warning: Project name not found in pyproject.toml. Using directory name as fallback."
+        )
         project_name = os.path.basename(git_root)
-    
+
     # Create .clerk and .clerk/doc directories
     clerk_directory = os.path.join(git_root, ".clerk")
     clerk_doc_directory = os.path.join(clerk_directory, "docs")
@@ -191,11 +189,12 @@ def main():
     gather_source_code("src", os.path.join(clerk_directory, f"{project_name}_src.md"))
     extract_div_convert_to_markdown(
         os.path.join(clerk_doc_directory, "index.html"),
-        os.path.join(clerk_directory, f"{project_name}_docs.md")
+        os.path.join(clerk_directory, f"{project_name}_docs.md"),
     )
 
     # Clean up temporary .clerk/docs directory
     shutil.rmtree(clerk_doc_directory)
+
 
 if __name__ == "__main__":
     main()
