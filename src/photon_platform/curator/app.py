@@ -15,7 +15,7 @@ from pathlib import Path
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from .curator import Curator
-from photon_platform.formulator import load_blueprint, FormulatorModal
+from photon_platform.formulator import load_blueprint, FormulatorModal, Formulator
 
 
 class CuratorApp(App):
@@ -55,14 +55,31 @@ class CuratorApp(App):
 
     def action_create_release_branch(self):
 
-        blueprint = load_blueprint("create_release_branch.yaml")
-        context = self.push_screen(FormulatorModal(validation_errors))
-        self.curator.create_release_branch(**context)
+        import os
+
+        # Get the directory containing the current file
+        current_dir = os.path.dirname(__file__)
+
+        # Construct the full path to the YAML file
+        yaml_file_path = os.path.join(current_dir, "create_release_branch.yaml")
+
+        # Now load the blueprint using the full path
+        blueprint = load_blueprint(yaml_file_path)
+
+        def get_context(context: dict) -> None:
+            if "release_version" in context:
+                self.curator.create_release_branch(**context)
+
+            self.query_one("#branches").value = str(self.curator.repo.branches)
+            self.query_one("#active_branch").value = str(self.curator.repo.active_branch)
+            self.query_one("#tags").value = str(self.curator.repo.tags)
+
+            self.exit(context)
+
+        self.push_screen(FormulatorModal(blueprint), get_context)
 
 
-        self.query_one("#branches").value = str(self.curator.repo.branches)
-        self.query_one("#active_branch").value = str(self.curator.repo.active_branch)
-        self.query_one("#tags").value = str(self.curator.repo.tags)
+
 
 
     def action_screenshot(self, path: str = "./") -> None:
@@ -77,4 +94,5 @@ class CuratorApp(App):
 
 def run() -> None:
     app = CuratorApp()
-    app.run()
+    result = app.run()
+    inspect(result)

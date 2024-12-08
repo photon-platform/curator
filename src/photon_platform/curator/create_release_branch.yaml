@@ -2,10 +2,15 @@ form:
   title: Create Release Branch
   id: create-release-branch
   fields:
-    project-name:
-      label: Project Name
-      placeholder: Enter Name
+    release_version:
+      label: next version number
+      placeholder: 0.0.X
       type: Input
       validate:
         required: true
-        max_length: 8
+    description:
+      label: description
+      placeholder: short desc
+      type: Input
+      validate:
+        required: true
