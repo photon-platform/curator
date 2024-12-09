@@ -100,7 +100,7 @@ class Curator:
         if not changelog_file.exists():
             print(f"No CHANGELOG.rst file found at {changelog_file}!")
             return
-        template - f"""\
+        template = f"""\
 
 { version }
 { '-' * len(version) }

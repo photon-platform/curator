@@ -78,7 +78,7 @@ class CuratorApp(App):
         self.push_screen(FormulatorModal(blueprint), get_context)
 
 
-    def merge_create_release_branch(self):
+    def action_merge_release_branch(self):
 
 
         # Get the directory containing the current file
