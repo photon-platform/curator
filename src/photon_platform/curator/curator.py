@@ -15,6 +15,7 @@ from github import Github
 import toml
 import os
 from rich import print, inspect
+from datetime import date
 
 
 class Curator:
@@ -94,11 +95,24 @@ class Curator:
                 lines[i] = f"__version__ = '{version}'"
         init_file.write_text("\n".join(lines) + "\n")
 
-    def update_changelog(self, version: str) -> None:
+    def update_changelog(self, version: str, description: str) -> None:
         changelog_file = self.root_path / "CHANGELOG.rst"
         if not changelog_file.exists():
             print(f"No CHANGELOG.rst file found at {changelog_file}!")
             return
+        template - f"""\
+
+{ version }
+{ '-' * len(version) }
+
+:init: { date.today().strftime("%Y.%j") } 
+:merge:
+:pub:
+
+  { description }
+
+- actions"""
+
         changelog_file.write_text(
             changelog_file.read_text()
             + f"\n## {version}\n\n- Placeholder for changes\n"
@@ -109,7 +123,7 @@ class Curator:
         dev_branch = self.repo.heads[branch_name]
         self.repo.git.checkout("main")
         self.repo.git.merge(dev_branch, m=commit_message)
-        print(f"Merged {branch_name} to main")
+        return True, f"Merged {branch_name} to main"
 
     def current_version(self):
         namespace, module = self.discover()
@@ -119,15 +133,10 @@ class Curator:
         return self.get_version(module)
 
     def create_release_branch(self, release_version: str, description: str) -> None:
-        print("create release branch")
-
         namespace, module = self.discover()
-        print(f"{namespace=}")
-        print(f"{module=}")
 
         if module is None:
-            print("Module not found")
-            return False
+            return False, "Module not found"
 
         current_version = self.get_version(module)
 
@@ -137,12 +146,11 @@ class Curator:
 
         self.set_version(module, release_version)
 
-        self.update_changelog(release_version)
+        self.update_changelog(release_version, description)
 
         self.repo.git.add(
             str(module / "__init__.py"), str(self.root_path / "CHANGELOG.rst")
         )
         self.repo.git.commit("-m", f"init release {release_version}\n{description}")
 
-        print(f"\n{release_version} set")
-        return True
+        return True, f"\n{release_version} set"

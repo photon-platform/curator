@@ -6,6 +6,7 @@ from textual.containers import Container, Horizontal, Vertical
 from textual.widgets import Header, Footer, Static, Button, Input, Label
 from textual.binding import Binding
 
+import os
 from rich import inspect, print
 from rich.text import Text
 
@@ -25,7 +26,7 @@ class CuratorApp(App):
     BINDINGS = [
         Binding("c", "create_release_branch", "create release branch"),
         Binding("m", "merge_release_branch", "merge release branch"),
-        Binding("ctrl-p", "screenshot", "screenshot", show=False),
+        #  Binding("ctrl-p", "screenshot", "screenshot", show=False),
         Binding("q", "quit", "quit"),
     ]
 
@@ -55,8 +56,6 @@ class CuratorApp(App):
 
     def action_create_release_branch(self):
 
-        import os
-
         # Get the directory containing the current file
         current_dir = os.path.dirname(__file__)
 
@@ -79,18 +78,44 @@ class CuratorApp(App):
         self.push_screen(FormulatorModal(blueprint), get_context)
 
 
+    def merge_create_release_branch(self):
+
+
+        # Get the directory containing the current file
+        current_dir = os.path.dirname(__file__)
+
+        # Construct the full path to the YAML file
+        yaml_file_path = os.path.join(current_dir, "merge_release_branch.yaml")
+
+        # Now load the blueprint using the full path
+        blueprint = load_blueprint(yaml_file_path)
+
+        def get_context(context: dict) -> None:
+            if "branch_name" in context:
+                self.curator.merge_to_main(**context)
+
+            self.query_one("#branches").value = str(self.curator.repo.branches)
+            self.query_one("#active_branch").value = str(self.curator.repo.active_branch)
+            self.query_one("#tags").value = str(self.curator.repo.tags)
+
+            self.exit(context)
+
+        self.push_screen(FormulatorModal(blueprint), get_context)
 
 
 
-    def action_screenshot(self, path: str = "./") -> None:
 
-        log_stamp = self.query_one("#log").value
-        filename = f"log/{log_stamp}.svg"
-        path = self.save_screenshot(filename, path)
 
-        message = Text.assemble("Screenshot saved to ", (f"'{path}'", "bold green"))
-        #  print(message)
-        self.bell()
+
+    #  def action_screenshot(self, path: str = "./") -> None:
+
+        #  log_stamp = self.query_one("#log").value
+        #  filename = f"log/{log_stamp}.svg"
+        #  path = self.save_screenshot(filename, path)
+
+        #  message = Text.assemble("Screenshot saved to ", (f"'{path}'", "bold green"))
+        #  #  print(message)
+        #  self.bell()
 
 def run() -> None:
     app = CuratorApp()

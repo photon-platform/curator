@@ -1,15 +1,15 @@
 form:
-  title: Create Release Branch
-  id: create-release-branch
+  title: Merge Release Branch
+  id: merge-release-branch
   fields:
-    release_version:
+    branch_name:
       label: release branch to merge
       placeholder: 0.0.X
       type: Input
       validate:
         required: true
-    description:
-      label: description 
+    commit_message:
+      label: commit message 
       placeholder: short 
       type: Input
       validate:
