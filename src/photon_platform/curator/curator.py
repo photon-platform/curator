@@ -115,7 +115,7 @@ class Curator:
 
         changelog_file.write_text(
             changelog_file.read_text()
-            + f"\n## {version}\n\n- Placeholder for changes\n"
+            + template
         )
 
     def merge_to_main(self, branch_name: str, commit_message: str) -> None:
