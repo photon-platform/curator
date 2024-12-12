@@ -153,4 +153,12 @@ class Curator:
         )
         self.repo.git.commit("-m", f"init release {release_version}\n{description}")
 
-        return True, f"\n{release_version} set"
+        # Set upstream and push the new branch
+        try:
+            self.repo.git.push("--set-upstream", "origin", release_version)
+            #  print(f"Successfully pushed and set upstream for branch {release_version}")
+        except Exception as e:
+            #  print(f"Error pushing branch: {str(e)}")
+            return False, f"Failed to push branch: {str(e)}"
+
+        return True, f"\n{release_version} set and pushed to remote"
