@@ -3,7 +3,7 @@ form:
   id: create-release-branch
   fields:
     release_version:
-      label: release branch to merge
+      label: new release version
       placeholder: 0.0.X
       type: Input
       validate:

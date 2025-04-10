@@ -73,9 +73,6 @@ class CuratorApp(App):
             if "release_version" in context:
                 success, message = self.curator.create_release_branch(**context)
 
-            # Dismiss the modal first
-            self.dismiss()
-
             # Then update UI and notify based on the result
             if success:
                 self.query_one("#branches").update(str(self.curator.branches()))
