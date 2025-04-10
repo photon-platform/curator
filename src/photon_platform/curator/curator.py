@@ -56,30 +56,128 @@ class Curator:
 
         return branches
 
-    def discover(self) -> tuple[Path, Path]:
-        source_path = self.root_path / "src"
-        if not source_path.exists():
-            print(f"No source directory found at {source_path}!")
+    def discover(self) -> tuple[Path | None, Path | None]:
+        """
+        Discovers the source directory and main module path based on pyproject.toml,
+        prioritizing [tool.setuptools.dynamic].version.attr.
+        """
+        if not self.pyproject_toml:
+            print("pyproject.toml not loaded or not found.")
             return None, None
 
-        first_child = next(source_path.iterdir())
+        source_dir_name = "src"  # Default, can be overridden by find config
+        module_python_path = None # e.g., "photon_platform.curator"
 
-        if not (first_child / "__init__.py").exists():
-            # This is a namespace, check the first child
-            namespace = first_child
-            module = next(namespace.iterdir())
-        else:
-            # There is no namespace, this is a module
-            namespace = None
-            module = first_child
+        # --- Determine Source Directory Name ---
+        try:
+            # Check setuptools.packages.find first for 'where'
+            find_config = self.pyproject_toml.get("tool", {}).get("setuptools", {}).get("packages", {}).get("find", {})
+            if find_config and "where" in find_config and isinstance(find_config["where"], list) and find_config["where"]:
+                source_dir_name = find_config["where"][0] # Use the first directory listed
+                print(f"Using source directory '{source_dir_name}' from [tool.setuptools.packages.find].where")
+            # We could potentially check poetry's 'from' here too if needed as another fallback
+        except Exception as e:
+            print(f"Could not parse [tool.setuptools.packages.find].where, using default '{source_dir_name}': {e}")
 
-        if not (module / "__init__.py").exists():
-            print(f"No __init__.py file found in module at {module}!")
+
+        # --- Determine Module Python Path ---
+        # 1. Prioritize [tool.setuptools.dynamic].version.attr
+        try:
+            dynamic_config = self.pyproject_toml.get("tool", {}).get("setuptools", {}).get("dynamic", {})
+            if "version" in dynamic_config and isinstance(dynamic_config["version"], dict):
+                version_attr = dynamic_config["version"].get("attr")
+                if isinstance(version_attr, str) and "." in version_attr:
+                    # version_attr is like "photon_platform.curator.__version__"
+                    # We need the part before the last dot: "photon_platform.curator"
+                    module_python_path = version_attr.rsplit('.', 1)[0]
+                    print(f"Found module path from [tool.setuptools.dynamic].version.attr: {module_python_path}")
+        except Exception as e:
+            print(f"Could not parse [tool.setuptools.dynamic].version.attr: {e}")
+            # Continue to next method
+
+        # 2. Fallback: Use [project.name] if module path still not found
+        #    (Less reliable for finding the *exact* module path, but better than nothing)
+        if not module_python_path:
+            print("Module path not found via dynamic version attr, falling back to [project.name]...")
+            try:
+                project_name = self.pyproject_toml.get("project", {}).get("name")
+                if project_name:
+                    # Convert project name (e.g., "photon-platform-curator")
+                    # to a potential Python path (e.g., "photon_platform_curator" or "photon_platform.curator")
+                    # This requires making assumptions about the structure.
+                    potential_path = project_name.replace("-", "_")
+
+                    # --- Basic Validation of inferred path ---
+                    # Construct the potential filesystem path for validation
+                    temp_source_path = self.root_path / source_dir_name
+                    temp_module_path_parts = potential_path.replace('.', '/').split('/')
+                    temp_full_path = temp_source_path.joinpath(*temp_module_path_parts)
+
+                    # Check if the directory and its __init__.py exist
+                    if temp_full_path.is_dir() and (temp_full_path / "__init__.py").is_file():
+                        module_python_path = potential_path # Use the derived path
+                        print(f"Inferred and validated module path from [project.name]: {module_python_path}")
+                    else:
+                        print(f"Could not validate inferred path '{temp_full_path}' from [project.name].")
+                        # Attempt to find the module within the includes from setuptools.find
+                        find_config = self.pyproject_toml.get("tool", {}).get("setuptools", {}).get("packages", {}).get("find", {})
+                        includes = find_config.get("include", [])
+                        if includes:
+                             # Example: includes = ["photon_platform"], project_name = "photon-platform-curator"
+                             # We might infer module is "curator" inside "photon_platform"
+                             top_level_package = includes[0].replace('/','.') # e.g., "photon_platform"
+                             module_part = project_name.split(top_level_package.replace('_','-'))[-1].strip('-') # e.g. "curator"
+                             if module_part:
+                                 potential_path = f"{top_level_package}.{module_part}"
+                                 temp_module_path_parts = potential_path.replace('.', '/').split('/')
+                                 temp_full_path = temp_source_path.joinpath(*temp_module_path_parts)
+                                 if temp_full_path.is_dir() and (temp_full_path / "__init__.py").is_file():
+                                     module_python_path = potential_path
+                                     print(f"Inferred and validated module path using [project.name] and includes: {module_python_path}")
+
+
+            except Exception as e:
+                 print(f"Could not parse [project.name] or validate path: {e}")
+
+
+        # --- Final Checks and Path Construction ---
+        if not module_python_path:
+            print("Could not determine module Python path from pyproject.toml.")
+            print("Checked: [tool.setuptools.dynamic].version.attr, [project.name]")
             return None, None
 
-        return namespace, module
+        # Construct filesystem paths using the determined source_dir_name and module_python_path
+        source_path = self.root_path / source_dir_name
+        if not source_path.is_dir():
+            print(f"Source directory '{source_dir_name}' determined from pyproject.toml not found at {source_path}")
+            return None, None
 
-    def get_version(self, module: Path) -> str:
+        # Convert module Python path (e.g., "photon_platform.curator")
+        # into path components relative to the source directory.
+        package_path_parts = module_python_path.replace('.', '/').split('/')
+
+        module_path = source_path.joinpath(*package_path_parts)
+        namespace_path = None
+
+        # Determine namespace path if applicable (parent dir relative to source_path)
+        if len(package_path_parts) > 1 and module_path.parent != source_path:
+             namespace_path = module_path.parent
+
+
+        # Validate the final module path
+        if not module_path.is_dir():
+            print(f"Determined module path '{module_path}' does not exist or is not a directory.")
+            return None, None
+
+        init_file = module_path / "__init__.py"
+        if not init_file.is_file():
+            print(f"No __init__.py file found in determined module directory: {module_path}")
+            return None, None
+
+        print(f"Discovered namespace: {namespace_path}, module: {module_path}") # Debug print
+        return namespace_path, module_path
+
+    def get_version(self, module: Path) -> str | None:
         init_file = module / "__init__.py"
         lines = init_file.read_text().splitlines()
         for line in lines:
