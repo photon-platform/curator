@@ -103,9 +103,6 @@ class CuratorApp(App):
             if "branch_name" in context:
                 success, message = self.curator.merge_to_main(**context)
 
-            # Dismiss the modal first
-            #  self.dismiss()
-
             # Then update UI and notify based on the result
             if success:
                 self.query_one("#branches").update(str(self.curator.branches()))
@@ -120,15 +117,6 @@ class CuratorApp(App):
 
         self.push_screen(FormulatorModal(blueprint), get_context)
 
-    #  def action_screenshot(self, path: str = "./") -> None:
-
-    #  log_stamp = self.query_one("#log").value
-    #  filename = f"log/{log_stamp}.svg"
-    #  path = self.save_screenshot(filename, path)
-
-    #  message = Text.assemble("Screenshot saved to ", (f"'{path}'", "bold green"))
-    #  #  print(message)
-    #  self.bell()
 
 
 def run() -> None:
