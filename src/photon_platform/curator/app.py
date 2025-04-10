@@ -51,7 +51,7 @@ class CuratorApp(App):
             Label("ACTIVE:"),
             Static(str(self.curator.repo.active_branch), id="active_branch"),
             Label("TAGS:"),
-            Static(str(self.curator.repo.tags), id="tags"),
+            Static(", ".join(t.name for t in self.curator.repo.tags), id="tags"),
             Label("VERSION:"),
             Static(str(self.curator.current_version()), id="version"),
             #  id="details",
@@ -80,7 +80,7 @@ class CuratorApp(App):
                 self.query_one("#active_branch").update(
                     str(self.curator.repo.active_branch)
                 )
-                self.query_one("#tags").update(str(self.curator.repo.tags))
+                self.query_one("#tags").update(", ".join(t.name for t in self.curator.repo.tags))
                 self.query_one("#version").update(str(self.curator.current_version()))
                 self.notify(message, title="Success", severity="information")
             else:
@@ -110,7 +110,7 @@ class CuratorApp(App):
                 self.query_one("#active_branch").update(
                     str(self.curator.repo.active_branch)
                 )
-                self.query_one("#tags").update(str(self.curator.repo.tags))
+                self.query_one("#tags").update(", ".join(t.name for t in self.curator.repo.tags))
                 # Version doesn't change on merge, so no need to update it here
                 self.notify(message, title="Success", severity="information")
             else:
@@ -139,7 +139,7 @@ class CuratorApp(App):
 
             # Then update UI and notify based on the result
             if success:
-                self.query_one("#tags").update(str(self.curator.repo.tags))
+                self.query_one("#tags").update(", ".join(t.name for t in self.curator.repo.tags))
                 self.notify(message, title="Success", severity="information")
             else:
                 self.notify(message, title="Error", severity="error")
