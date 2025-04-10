@@ -104,7 +104,7 @@ class CuratorApp(App):
                 success, message = self.curator.merge_to_main(**context)
 
             # Dismiss the modal first
-            self.dismiss()
+            #  self.dismiss()
 
             # Then update UI and notify based on the result
             if success:
