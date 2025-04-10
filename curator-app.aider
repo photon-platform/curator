@@ -1,0 +1,7 @@
+/drop
+/add       src/photon_platform/curator/app.py
+/add       src/photon_platform/curator/branch.py
+/add       src/photon_platform/curator/create_release_branch.yaml
+/add       src/photon_platform/curator/curator.py
+/add       src/photon_platform/curator/merge_release_branch.yaml
+/add       src/photon_platform/curator/modal.py
