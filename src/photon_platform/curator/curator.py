@@ -162,3 +162,18 @@ class Curator:
             return False, f"Failed to push branch: {str(e)}"
 
         return True, f"\n{release_version} set and pushed to remote"
+
+    def create_tag(self, tag_name: str, message: str) -> tuple[bool, str]:
+        """Creates an annotated tag and pushes it to origin."""
+        if self.repo.active_branch.name != 'main':
+            return False, "Must be on 'main' branch to create a release tag."
+
+        try:
+            # Create annotated tag
+            self.repo.create_tag(tag_name, message=message, force=False) # force=False prevents overwriting existing tags
+            # Push the tag to origin
+            self.repo.git.push("origin", tag_name)
+            return True, f"Tag '{tag_name}' created and pushed successfully."
+        except Exception as e:
+            # Catch potential errors like tag already exists or push failure
+            return False, f"Failed to create or push tag '{tag_name}': {str(e)}"

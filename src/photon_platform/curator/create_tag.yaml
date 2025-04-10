@@ -1,0 +1,16 @@
+form:
+  title: Create and Push Tag
+  id: create-tag
+  fields:
+    tag_name:
+      label: tag name (e.g., v0.1.0)
+      placeholder: vX.Y.Z
+      type: Input
+      validate:
+        required: true
+    message:
+      label: tag message (annotation)
+      placeholder: Release version X.Y.Z
+      type: Input
+      validate:
+        required: true

@@ -28,6 +28,7 @@ class CuratorApp(App):
     BINDINGS = [
         Binding("c", "create_release_branch", "create release branch"),
         Binding("m", "merge_release_branch", "merge release branch"),
+        Binding("t", "tag_release", "tag release"),
         #  Binding("ctrl-p", "screenshot", "screenshot", show=False),
         Binding("q", "quit", "quit"),
     ]
@@ -117,6 +118,36 @@ class CuratorApp(App):
 
         self.push_screen(FormulatorModal(blueprint), get_context)
 
+    def action_tag_release(self):
+        """Action to tag the current commit on main branch."""
+        if self.curator.repo.active_branch.name != 'main':
+            self.notify("Must be on 'main' branch to tag a release.", title="Error", severity="error")
+            return
+
+        # Get the directory containing the current file
+        current_dir = os.path.dirname(__file__)
+        # Construct the full path to the YAML file
+        yaml_file_path = os.path.join(current_dir, "create_tag.yaml")
+        # Now load the blueprint using the full path
+        blueprint = load_blueprint(yaml_file_path)
+
+        def get_context(context: dict) -> None:
+            success = False
+            message = "No tag action taken."
+            if "tag_name" in context and "message" in context:
+                success, message = self.curator.create_tag(**context)
+
+            # Dismiss the modal first
+            self.dismiss()
+
+            # Then update UI and notify based on the result
+            if success:
+                self.query_one("#tags").update(str(self.curator.repo.tags))
+                self.notify(message, title="Success", severity="information")
+            else:
+                self.notify(message, title="Error", severity="error")
+
+        self.push_screen(FormulatorModal(blueprint), get_context)
 
 
 def run() -> None:
