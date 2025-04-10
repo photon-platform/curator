@@ -16,3 +16,14 @@
 
 .. + Fixed bug in data processing (`#42 <https://github.com/example/repo/issues/42>`_)
 .. + Improved error handling in API calls
+
+0.0.2
+-----
+
+:init: 2025.100 
+:merge:
+:pub:
+
+  testing versions
+
+- actions
