@@ -27,3 +27,13 @@
   testing versions
 
 - actions
+0.0.3
+-----
+
+:init: 2025.100 
+:merge:
+:pub:
+
+  testing versions
+
+- actions
