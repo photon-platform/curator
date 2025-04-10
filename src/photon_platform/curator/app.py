@@ -137,9 +137,6 @@ class CuratorApp(App):
             if "tag_name" in context and "message" in context:
                 success, message = self.curator.create_tag(**context)
 
-            # Dismiss the modal first
-            self.dismiss()
-
             # Then update UI and notify based on the result
             if success:
                 self.query_one("#tags").update(str(self.curator.repo.tags))
