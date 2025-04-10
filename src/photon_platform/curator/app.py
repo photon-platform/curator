@@ -17,6 +17,7 @@ from pathlib import Path
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from .curator import Curator
+from .modal import AlertScreen, ErrorScreen  # Import modal screens
 from photon_platform.formulator import load_blueprint, FormulatorModal, Formulator
 
 
@@ -67,16 +68,25 @@ class CuratorApp(App):
         blueprint = load_blueprint(yaml_file_path)
 
         def get_context(context: dict) -> None:
+            success = False
+            message = "No action taken."
             if "release_version" in context:
-                self.curator.create_release_branch(**context)
+                success, message = self.curator.create_release_branch(**context)
 
-            self.query_one("#branches").value = str(self.curator.repo.branches)
-            self.query_one("#active_branch").value = str(
-                self.curator.repo.active_branch
-            )
-            self.query_one("#tags").value = str(self.curator.repo.tags)
+            # Dismiss the modal first
+            self.dismiss()
 
-            self.exit(context)
+            # Then update UI and notify based on the result
+            if success:
+                self.query_one("#branches").update(str(self.curator.branches()))
+                self.query_one("#active_branch").update(
+                    str(self.curator.repo.active_branch)
+                )
+                self.query_one("#tags").update(str(self.curator.repo.tags))
+                self.query_one("#version").update(str(self.curator.current_version()))
+                self.notify(message, title="Success", severity="information")
+            else:
+                self.notify(message, title="Error", severity="error")
 
         self.push_screen(FormulatorModal(blueprint), get_context)
 
@@ -91,16 +101,25 @@ class CuratorApp(App):
         blueprint = load_blueprint(yaml_file_path)
 
         def get_context(context: dict) -> None:
+            success = False
+            message = "No action taken."
             if "branch_name" in context:
-                self.curator.merge_to_main(**context)
+                success, message = self.curator.merge_to_main(**context)
 
-            self.query_one("#branches").value = str(self.curator.repo.branches)
-            self.query_one("#active_branch").value = str(
-                self.curator.repo.active_branch
-            )
-            self.query_one("#tags").value = str(self.curator.repo.tags)
+            # Dismiss the modal first
+            self.dismiss()
 
-            self.exit(context)
+            # Then update UI and notify based on the result
+            if success:
+                self.query_one("#branches").update(str(self.curator.branches()))
+                self.query_one("#active_branch").update(
+                    str(self.curator.repo.active_branch)
+                )
+                self.query_one("#tags").update(str(self.curator.repo.tags))
+                # Version doesn't change on merge, so no need to update it here
+                self.notify(message, title="Success", severity="information")
+            else:
+                self.notify(message, title="Error", severity="error")
 
         self.push_screen(FormulatorModal(blueprint), get_context)
 
