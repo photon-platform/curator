@@ -17,7 +17,7 @@ from pathlib import Path
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 from .curator import Curator
-from .modal import AlertScreen, ErrorScreen  # Import modal screens
+#  from .modal import AlertScreen, ErrorScreen  # Import modal screens
 from photon_platform.formulator import load_blueprint, FormulatorModal, Formulator
 
 
