@@ -28,7 +28,7 @@ gather = "photon_platform.curator.gather:main"
 grax = "photon_platform.curator.arxivit:main"
 ggh = "photon_platform.curator.repo_rst:main"
 gyt = "photon_platform.curator.get_youtube:main"
-grs = "photon_platform.curator.git_reset:main"
+git_reset = "photon_platform.curator.git_reset:main"
 
 [build-system]
 requires = ["setuptools", "setuptools-scm"]
