@@ -213,21 +213,26 @@ def reset_git_repo(repo_path='.', force_push=False):
          print(f"Could not run 'git status': {e}", file=sys.stderr)
 
 
-if __name__ == "__main__":
-    # Basic command line argument parsing
+def main():
+    """
+    CLI entry point for `git‑reset`.  Parses arguments and
+    calls `reset_git_repo`.
+    """
     target_repo_path = '.'
     do_force_push = False
 
-    # Check for --force or -f flag
+    # recognise --force / -f
     if '--force' in sys.argv or '-f' in sys.argv:
         do_force_push = True
-        # Remove the flag so it's not treated as a path
-        if '--force' in sys.argv: sys.argv.remove('--force')
-        if '-f' in sys.argv: sys.argv.remove('-f')
+        sys.argv[:] = [arg for arg in sys.argv if arg not in ('--force', '-f')]
 
-    # The remaining argument, if any, is the path
+    # remaining positional argument → repo path
     if len(sys.argv) > 1:
         target_repo_path = sys.argv[1]
 
     reset_git_repo(target_repo_path, force_push=do_force_push)
+
+
+if __name__ == "__main__":
+    main()
 
